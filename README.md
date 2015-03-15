@@ -10,7 +10,6 @@ reveal.js comes with a broad range of features including [nested slides](https:/
 - [Changelog](https://github.com/hakimel/reveal.js/releases): Up-to-date version history.
 - [Examples](https://github.com/hakimel/reveal.js/wiki/Example-Presentations): Presentations created with reveal.js, add your own!
 - [Browser Support](https://github.com/hakimel/reveal.js/wiki/Browser-Support): Explanation of browser support and fallbacks.
-- [Plugins](https://github.com/hakimel/reveal.js/wiki/Plugins,-Tools-and-Hardware): A list of plugins that can be used to extend reveal.js.
 
 ## Online Editor
 
@@ -231,17 +230,6 @@ You can add your own extensions using the same syntax. The following properties 
 - **condition**: [optional] Function which must return true for the script to be loaded
 
 
-### Ready Event
-
-A 'ready' event is fired when reveal.js has loaded all non-async dependencies and is ready to start navigating. To check if reveal.js is already 'ready' you can call `Reveal.isReady()`.
-
-```javascript
-Reveal.addEventListener( 'ready', function( event ) {
-	// event.currentSlide, event.indexh, event.indexv
-} );
-```
-
-
 ### Presentation Size
 
 All presentations have a normal size, that is the resolution at which they are authored. The framework will automatically scale presentations uniformly based on this size to ensure that everything fits on any given display or viewport.
@@ -264,7 +252,7 @@ Reveal.initialize({
 
 	// Bounds for smallest/largest possible scale to apply to content
 	minScale: 0.2,
-	maxScale: 1.5
+	maxScale: 1.0
 
 });
 ```
@@ -318,7 +306,7 @@ To enable lazy loading all you need to do is change your "src" attributes to "da
 ```html
 <section>
   <img data-src="image.png">
-  <iframe data-src="http://slides.com"></iframe>
+  <iframe data-src="http://slides.com">
   <video>
     <source data-src="video.webm" type="video/webm" />
     <source data-src="video.mp4" type="video/mp4" />
@@ -329,7 +317,7 @@ To enable lazy loading all you need to do is change your "src" attributes to "da
 
 ### API
 
-The ``Reveal`` object exposes a JavaScript API for controlling navigation and reading state:
+The ``Reveal`` class provides a JavaScript API for controlling navigation and reading state:
 
 ```javascript
 // Navigation
@@ -342,28 +330,15 @@ Reveal.prev();
 Reveal.next();
 Reveal.prevFragment();
 Reveal.nextFragment();
-
-// Toggle presentation states, optionally pass true/false to force on/off
 Reveal.toggleOverview();
 Reveal.togglePause();
 Reveal.toggleAutoSlide();
-
-// Change a config value at runtime
-Reveal.configure({ controls: true });
-
-// Returns the present configuration options
-Reveal.getConfig();
-
-// Fetch the current scale of the presentation
-Reveal.getScale();
 
 // Retrieves the previous and current slide elements
 Reveal.getPreviousSlide();
 Reveal.getCurrentSlide();
 
 Reveal.getIndices(); // { h: 0, v: 0 } }
-Reveal.getProgress(); // 0-1
-Reveal.getTotalSlides();
 
 // State checks
 Reveal.isFirstSlide();
@@ -373,9 +348,19 @@ Reveal.isPaused();
 Reveal.isAutoSliding();
 ```
 
+### Ready Event
+
+The 'ready' event is fired when reveal.js has loaded all (synchronous) dependencies and is ready to start navigating.
+
+```javascript
+Reveal.addEventListener( 'ready', function( event ) {
+	// event.currentSlide, event.indexh, event.indexv
+} );
+```
+
 ### Slide Changed Event
 
-A 'slidechanged' event is fired each time the slide is changed (regardless of state). The event object holds the index values of the current slide as well as a reference to the previous and current slide HTML nodes.
+An 'slidechanged' event is fired each time the slide is changed (regardless of state). The event object holds the index values of the current slide as well as a reference to the previous and current slide HTML nodes.
 
 Some libraries, like MathJax (see [#226](https://github.com/hakimel/reveal.js/issues/226#issuecomment-10261609)), get confused by the transforms and display states of slides. Often times, this can be fixed by calling their update or render function from this callback.
 
@@ -385,24 +370,8 @@ Reveal.addEventListener( 'slidechanged', function( event ) {
 } );
 ```
 
-### Presentation State
 
-The presentation's current state can be fetched by using the `getState` method. A state object contains all of the information required to put the presentation back as it was when `getState` was first called. Sort of like a snapshot. It's a simple object that can easily be stringified and persisted or sent over the wire.
-
-```javascript
-Reveal.slide( 1 );
-// we're on slide 1
-
-var state = Reveal.getState();
-
-Reveal.slide( 3 );
-// we're on slide 3
-
-Reveal.setState( state );
-// we're back on slide 1
-```
-
-### Slide States
+### States
 
 If you set ``data-state="somestate"`` on a slide ``<section>``, "somestate" will be applied as a class on the document element when that slide is opened. This allows you to apply broad style changes to the page based on the active slide.
 
@@ -619,39 +588,6 @@ Sometimes it's desirable to have an element, like an image or video, stretch to 
 Limitations:
 - Only direct descendants of a slide section can be stretched
 - Only one descendant per slide section can be stretched
-
-
-### postMessage API
-The framework has a built-in postMessage API that can be used when communicating with a presentation inside of another window. Here's an example showing how you'd make a reveal.js instance in the given window proceed to slide 2:
-
-```javascript
-<window>.postMessage( JSON.stringify({ method: 'slide', args: [ 2 ] }), '*' );
-```
-
-When reveal.js runs inside of an iframe it can optionally bubble all of its events to the parent. Bubbled events are stringified JSON with three fields: namespace, eventName and state. Here's how you subscribe to them from the parent window:
-
-```javascript
-window.addEventListener( 'message', function( event ) {
-	var data = JSON.parse( event.data );
-	if( data.namespace === 'reveal' && data.eventName ='slidechanged' ) {
-		// Slide changed, see data.state for slide number
-	}
-} );
-```
-
-This cross-window messaging can be toggled on or off using configuration flags.
-
-```javascript
-Reveal.initialize({
-	...,
-
-	// Exposes the reveal.js API through window.postMessage
-	postMessage: true,
-
-	// Dispatches all reveal.js events to the parent window through postMessage
-	postMessageEvents: false
-});
-```
 
 
 ## PDF Export
